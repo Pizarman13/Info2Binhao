@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>EV Charging App</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #map, #tech-map { height: 400px; }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- ========= LOGIN / REGISTER ========= -->
+<div class="container py-5" id="auth-container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <ul class="nav nav-tabs card-header-tabs" id="auth-tabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane">Iniciar sesión</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-pane">Registrarse</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div id="alert-container"></div>
+                    <div class="tab-content" id="auth-tabs-content">
+
+                        <!-- LOGIN -->
+                        <div class="tab-pane fade show active" id="login-pane" role="tabpanel">
+                            <form id="login-form">
+                                <div class="mb-3">
+                                    <label for="login-username" class="form-label">Usuario</label>
+                                    <input type="text" id="login-username" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="login-password" class="form-label">Contraseña</label>
+                                    <input type="password" id="login-password" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="login-role" class="form-label">Iniciar como</label>
+                                    <select id="login-role" class="form-select" required>
+                                        <option>Usuario</option>
+                                        <option>Administrador</option>
+                                        <option>Técnico</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                            </form>
+                        </div>
+
+                        <!-- REGISTER -->
+                        <div class="tab-pane fade" id="register-pane" role="tabpanel">
+                            <form id="register-form">
+                                <div class="mb-3">
+                                    <label for="register-username" class="form-label">Usuario</label>
+                                    <input type="text" id="register-username" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="register-password" class="form-label">Contraseña</label>
+                                    <input type="password" id="register-password" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="register-password2" class="form-label">Confirmar contraseña</label>
+                                    <input type="password" id="register-password2" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="register-role" class="form-label">Selecciona tu rol</label>
+                                    <select id="register-role" class="form-select" required>
+                                        <option>Usuario</option>
+                                        <option>Administrador</option>
+                                        <option>Técnico</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Registrarse</button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========= DASHBOARDS ========= -->
+<div class="container py-4 d-none" id="dashboard-container">
+
+    <!-- Logout -->
+    <div class="d-flex justify-content-end mb-3">
+        <button id="logout-btn" class="btn btn-outline-secondary">Cerrar sesión</button>
+    </div>
+
+    <!-- USUARIO -->
+    <div id="usuario-dashboard" class="d-none">
+        <h3>🔌 Búsqueda de cargadores</h3>
+        <div id="map" class="mb-3"></div>
+        <ul class="list-group mb-3" id="charger-list"></ul>
+        <h4>Historial de reservas</h4>
+        <ul class="list-group" id="reservation-history"></ul>
+    </div>
+
+    <!-- ADMINISTRADOR -->
+    <div id="administrador-dashboard" class="d-none">
+        <h3>🛠 Gestión de cargadores</h3>
+        <form id="add-charger-form" class="row g-2 mb-3">
+            <div class="col"><input type="text" id="new-charger-name" class="form-control" placeholder="Nombre" required></div>
+            <div class="col"><input type="number" step="any" id="new-charger-lat" class="form-control" placeholder="Latitud" required></div>
+            <div class="col"><input type="number" step="any" id="new-charger-lng" class="form-control" placeholder="Longitud" required></div>
+            <div class="col-auto"><button class="btn btn-success">Añadir</button></div>
+        </form>
+        <ul class="list-group mb-4" id="charger-admin-list"></ul>
+        <h3>📊 Estadísticas de uso</h3>
+        <div id="admin-stats" class="mb-4"></div>
+        <h3>📜 Logs de auditoría</h3>
+        <ul class="list-group" id="admin-logs"></ul>
+    </div>
+
+    <!-- TÉCNICO -->
+    <div id="tecnico-dashboard" class="d-none">
+        <h3>🔌 Cargadores cercanos</h3>
+        <div id="tech-map" class="mb-3"></div>
+        <ul class="list-group mb-4" id="tech-charger-list"></ul>
+
+        <h3>🔧 Actualizar estado</h3>
+        <p>Usa el interruptor para habilitar/inhabilitar un cargador.</p>
+
+        <h3>📋 Reportar incidencia</h3>
+        <form id="report-incident-form" class="mb-3">
+            <div class="mb-2">
+                <label class="form-label">Cargador</label>
+                <select id="incident-charger" class="form-select" required></select>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Descripción</label>
+                <textarea id="incident-desc" class="form-control" required></textarea>
+            </div>
+            <button class="btn btn-danger">Reportar</button>
+        </form>
+        <ul class="list-group" id="incident-list"></ul>
+    </div>
+
+</div>
+
+<!-- Modal para detalles técnicos -->
+<div class="modal fade" id="techDetailsModal" tabindex="-1" aria-labelledby="techDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="techDetailsModalLabel">Detalles técnicos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="tech-details-body"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap + Google Maps + tu JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDX5cuNgvTG8Pr8WGedIsksGvme3S0sRgk&libraries=places"></script>
+<script src="app.js"></script>
+</body>
+</html>
